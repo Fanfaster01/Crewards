@@ -3,6 +3,7 @@ from flask_cors import CORS
 from static.src.user import user_bp
 
 app = Flask(__name__)
+app.secret_key = 'K*i*r3a4'
 CORS(app)
 
 # Registrar blueprint User

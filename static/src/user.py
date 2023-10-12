@@ -12,7 +12,10 @@ def register():
         password = request.form['password']
 
         # Registro en Supabase
-        user, error = supabase.auth.sign_up(email, password)
+        user, error = supabase.auth.sign_up({
+          "email": email,
+          "password": password,
+        })
         if error:
             flash(str(error), 'danger')
         else:
@@ -21,6 +24,8 @@ def register():
         
     return render_template('/user/Register.html')
 
+
+
 @user_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -28,7 +33,7 @@ def login():
         password = request.form['password']
 
         # Iniciar sesión en Supabase
-        user, error = supabase.auth.sign_in(email, password)
+        user, error = supabase.auth.sign_in_with_password({"email": email, "password": password})
         if error:
             flash(str(error), 'danger')
         else:
@@ -37,12 +42,18 @@ def login():
             return redirect(url_for('dashboard'))
     return render_template('/user/login.html')
 
+
+
+
 @user_bp.route('/dashboard')
 def dashboard():
     if 'user' not in session:
         flash('Por favor, inicia sesión para ver esta página', 'danger')
         return redirect(url_for('login'))
-    return f"Bienvenido, {session['user']['user']['email']}!"
+    return render_template('/user/Dashboard.html')
+
+
+
 
 @user_bp.route('/logout')
 def logout():
