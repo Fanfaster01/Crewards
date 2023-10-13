@@ -9,6 +9,7 @@ CORS(app)
 # Registrar blueprint User
 app.register_blueprint(user_bp, url_prefix='/user')
 
+
 @app.route("/")
 def index():
 	return render_template("/index.html")
