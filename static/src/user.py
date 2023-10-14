@@ -2,12 +2,15 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_login import LoginManager
 from static.config.supabase_config import supabase
-from urllib.parse import parse_qs
+
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
-login_manager = LoginManager(user_bp)
-login_manager.login_view = 'user.login'
+login_manager = LoginManager()
+
+def init_app(app):
+    login_manager.init_app(app)
+    login_manager.login_view = 'user.login'
 
 class User():
     def __init__(self, id, email, password):
@@ -19,7 +22,7 @@ class User():
 def load_user(user_id):
     user = supabase.auth.get_user(user_id)
     if user:
-        return User(user['id'], user['email'], user['password'])
+        return User(user.user.id, user.user.email, user.user)
 
 @user_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -30,38 +33,43 @@ def login():
             "email": email, 
             "password": password
         })
-        if result.get('error'):
+        if not result.user:
             flash('Email o contraseña incorrectos', 'error')
             return redirect(url_for('user.login'))
         else:
-            user = User(result['user']['id'], email, password)
+            user = User(result.user.id, email, password)
             login_user(user)
             return redirect(url_for('user.dashboard'))
     else:
-        return render_template('login.html')
+        return render_template('/user/Login.html')
 
 @user_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        user = supabase.auth.get_user_by_email(email).get('user')
-        if user:
+        result = supabase.auth.sign_up({
+            "email": email,
+            "password": password
+        })
+
+        print(result)
+        if result.user.identities[]:
+
+        return render_template('/user/Dashboard.html')
+    return render_template('/user/Register.html')
+
+"""         if result.user:
+            flash('Usuario registrado exitosamente', 'success')
+            return redirect(url_for('user.login'))
             flash('El email ya está registrado', 'error')
             return redirect(url_for('user.Register'))
         else:
-            result = supabase.auth.sign_up({
-                "email": email,
-                "password": password
-            })
             if result.get('error'):
                 flash('Error al registrar usuario', 'error')
                 return redirect(url_for('user.signup'))
             else:
-                flash('Usuario registrado exitosamente', 'success')
-                return redirect(url_for('user.login'))
-    else:
-        return render_template('/user/Register.html')
+    else: """
 
 @user_bp.route('/dashboard')
 @login_required
