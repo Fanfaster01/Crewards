@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
-from supabase import create_client
 from flask_login import LoginManager
 from static.config.supabase_config import supabase
+from urllib.parse import parse_qs
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -29,7 +29,7 @@ def login():
         result = supabase.auth.sign_in_with_password({
             "email": email, 
             "password": password
-            })
+        })
         if result.get('error'):
             flash('Email o contraseña incorrectos', 'error')
             return redirect(url_for('user.login'))
@@ -48,12 +48,12 @@ def signup():
         user = supabase.auth.get_user_by_email(email).get('user')
         if user:
             flash('El email ya está registrado', 'error')
-            return redirect(url_for('user.signup'))
+            return redirect(url_for('user.Register'))
         else:
             result = supabase.auth.sign_up({
-          "email": email,
-          "password": password
-        })
+                "email": email,
+                "password": password
+            })
             if result.get('error'):
                 flash('Error al registrar usuario', 'error')
                 return redirect(url_for('user.signup'))
@@ -61,7 +61,7 @@ def signup():
                 flash('Usuario registrado exitosamente', 'success')
                 return redirect(url_for('user.login'))
     else:
-        return render_template('signup.html')
+        return render_template('/user/Register.html')
 
 @user_bp.route('/dashboard')
 @login_required
